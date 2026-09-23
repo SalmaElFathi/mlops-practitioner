@@ -1,21 +1,19 @@
 import os
 import pickle
+
 import numpy as np
-
-from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.pipeline import Pipeline
-from sklearn.metrics import mean_squared_error, mean_absolute_error
-
+from sklearn.preprocessing import OneHotEncoder
 from xgboost import XGBRegressor
 
-from prodml.data import load_data,split_data
-from prodml.features import features
 from prodml.config import settings
+from prodml.data import load_data, split_data
+from prodml.features import features
 
 df = load_data(settings.data_path)
-df_train, df_validation = split_data(df,settings.test_size,settings.random_state)
+df_train, df_validation = split_data(df, settings.test_size, settings.random_state)
 
 df_train = features(df_train)
 df_validation = features(df_validation)
@@ -34,31 +32,22 @@ IQR = Q3 - Q1
 lower = Q1 - 1.5 * IQR
 upper = Q3 + 1.5 * IQR
 
-mask = (
-    (X_train["GrLivArea"] >= lower)
-    & (X_train["GrLivArea"] <= upper)
-)
+mask = (X_train["GrLivArea"] >= lower) & (X_train["GrLivArea"] <= upper)
 
 X_train = X_train[mask]
 y_train = y_train[mask]
 
 
-numeric_features = X_train.select_dtypes(
-    include=["int64", "float64"]
-).columns
+numeric_features = X_train.select_dtypes(include=["int64", "float64"]).columns
 
-categorical_features = X_train.select_dtypes(
-    include=["object"]
-).columns
+categorical_features = X_train.select_dtypes(include=["object"]).columns
 
-encoder = OneHotEncoder(
-    handle_unknown="ignore"
-)
+encoder = OneHotEncoder(handle_unknown="ignore")
 
 preprocessor = ColumnTransformer(
     transformers=[
         ("num", "passthrough", numeric_features),
-        ("cat", encoder, categorical_features)
+        ("cat", encoder, categorical_features),
     ]
 )
 
@@ -66,77 +55,36 @@ xgb = XGBRegressor(
     n_estimators=settings.n_estimators,
     learning_rate=settings.learning_rate,
     max_depth=settings.max_depth,
-    random_state=settings.random_state
+    random_state=settings.random_state,
 )
 
-model_final = Pipeline(
-    steps=[
-        ("preprocessor", preprocessor),
-        ("model", xgb)
-    ]
-)
+model_final = Pipeline(steps=[("preprocessor", preprocessor), ("model", xgb)])
 
-model_final.fit(
-    X_train,
-    y_train
-)
+model_final.fit(X_train, y_train)
 
-y_pred = model_final.predict(
-    X_validation
-)
+y_pred = model_final.predict(X_validation)
 
 
-rmse_final = np.sqrt(
-    mean_squared_error(
-        y_validation,
-        y_pred
-    )
-)
+rmse_final = np.sqrt(mean_squared_error(y_validation, y_pred))
 
-mae_final = mean_absolute_error(
-    y_validation,
-    y_pred
-)
+mae_final = mean_absolute_error(y_validation, y_pred)
 
 print(f"RMSE : {rmse_final:.2f}")
 print(f"MAE  : {mae_final:.2f}")
 
-os.makedirs(
-    settings.reports_path,
-    exist_ok=True
-)
+os.makedirs(settings.reports_path, exist_ok=True)
 
-with open(
-    f"{settings.reports_path}/module-1.md",
-    "w"
-) as f:
+with open(f"{settings.reports_path}/module-1.md", "w") as f:
 
-    f.write(
-        "## Module 1 - XGBoost\n\n"
-    )
+    f.write("## Module 1 - XGBoost\n\n")
 
-    f.write(
-        f"- **RMSE (validation)** : "
-        f"{rmse_final:.2f}\n"
-    )
+    f.write(f"- **RMSE (validation)** : " f"{rmse_final:.2f}\n")
 
-    f.write(
-        f"- **MAE (validation)** : "
-        f"{mae_final:.2f}\n"
-    )
+    f.write(f"- **MAE (validation)** : " f"{mae_final:.2f}\n")
 
 
-os.makedirs(
-    settings.model_path,
-    exist_ok=True
-)
+os.makedirs(settings.model_path, exist_ok=True)
 
-with open(
-    f"{settings.model_path}/baseline.pkl",
-    "wb"
-) as f:
+with open(f"{settings.model_path}/baseline.pkl", "wb") as f:
 
-    pickle.dump(
-        model_final,
-        f
-    )
+    pickle.dump(model_final, f)
