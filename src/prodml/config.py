@@ -1,0 +1,9 @@
+DATA_PATH='./data/train.csv'
+MODEL_PATH='./models'
+REPORTS_PATH='./reports'
+
+N_ESTIMATORS = 200
+LEARNING_RATE = 0.1
+MAX_DEPTH = 3
+RANDOM_STATE = 42
+TEST_SIZE = 0.2
