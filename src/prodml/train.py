@@ -12,10 +12,10 @@ from xgboost import XGBRegressor
 
 from prodml.data import load_data,split_data
 from prodml.features import features
-from prodml.config import DATA_PATH,REPORTS_PATH,MODEL_PATH,N_ESTIMATORS,MAX_DEPTH,LEARNING_RATE,RANDOM_STATE
+from prodml.config import settings
 
-df = load_data(DATA_PATH)
-df_train, df_validation = split_data(df)
+df = load_data(settings.data_path)
+df_train, df_validation = split_data(df,settings.test_size,settings.random_state)
 
 df_train = features(df_train)
 df_validation = features(df_validation)
@@ -63,10 +63,10 @@ preprocessor = ColumnTransformer(
 )
 
 xgb = XGBRegressor(
-    n_estimators=N_ESTIMATORS,
-    learning_rate=LEARNING_RATE,
-    max_depth=MAX_DEPTH,
-    random_state=RANDOM_STATE
+    n_estimators=settings.n_estimators,
+    learning_rate=settings.learning_rate,
+    max_depth=settings.max_depth,
+    random_state=settings.random_state
 )
 
 model_final = Pipeline(
@@ -102,12 +102,12 @@ print(f"RMSE : {rmse_final:.2f}")
 print(f"MAE  : {mae_final:.2f}")
 
 os.makedirs(
-    REPORTS_PATH,
+    settings.reports_path,
     exist_ok=True
 )
 
 with open(
-    f"{REPORTS_PATH}/module-1.md",
+    f"{settings.reports_path}/module-1.md",
     "w"
 ) as f:
 
@@ -127,12 +127,12 @@ with open(
 
 
 os.makedirs(
-    MODEL_PATH,
+    settings.model_path,
     exist_ok=True
 )
 
 with open(
-    f"{MODEL_PATH}/baseline.pkl",
+    f"{settings.model_path}/baseline.pkl",
     "wb"
 ) as f:
 
