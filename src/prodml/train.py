@@ -1,3 +1,4 @@
+import logging
 import os
 import pickle
 
@@ -11,6 +12,10 @@ from xgboost import XGBRegressor
 from prodml.config import settings
 from prodml.data import load_data, split_data
 from prodml.features import features
+from prodml.logging_conf import setup_logging
+
+setup_logging()
+logger = logging.getLogger(__name__)
 
 df = load_data(settings.data_path)
 df_train, df_validation = split_data(df, settings.test_size, settings.random_state)
@@ -69,8 +74,8 @@ rmse_final = np.sqrt(mean_squared_error(y_validation, y_pred))
 
 mae_final = mean_absolute_error(y_validation, y_pred)
 
-print(f"RMSE : {rmse_final:.2f}")
-print(f"MAE  : {mae_final:.2f}")
+logger.info(f"RMSE : {rmse_final:.2f}")
+logger.info(f"MAE  : {mae_final:.2f}")
 
 os.makedirs(settings.reports_path, exist_ok=True)
 
